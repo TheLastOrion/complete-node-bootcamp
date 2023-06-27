@@ -2,7 +2,7 @@ const fs = require('fs')
 const http = require('http');
 const url = require ('url');
 const path = require("path");
-
+const querystring = require('querystring');
 
 ////////////////////////////////
 
@@ -68,8 +68,19 @@ const tempProduct = fs.readFileSync(`${__dirname}/templates/template-product.htm
 const dataObj = JSON.parse(data);
 
 const server = http.createServer((req, res) => {
-    const pathName = req.url;
 
+    const baseURL = `http://${req.headers.host}`;
+    const myURL = new URL(req.url, baseURL);
+
+    const pathName = myURL.pathname;
+    // const query = myURL.searchParams.get('id')
+    const queryID = myURL.searchParams.get('id');
+
+    //console.log(baseURL+req.url    );
+    //console.log(myURL.pathname);
+    // const pathName = myURL.pathname;
+    // const query = myURL.search;
+     console.log(`baseURL: ${baseURL}\nmyUrl: ${myURL}\npathName: ${pathName}\nquery: ${queryID}`)
     // Overview page
     if(pathName === '/' || pathName ===  '/overview') {
         res.writeHead(200, {'Content-type': 'text/html'});
@@ -83,7 +94,13 @@ const server = http.createServer((req, res) => {
     // Product page
     else if(pathName === '/product')
     {
-        res.end('This is the PRODUCT');
+        res.writeHead(200, {'Content-type': 'text/html'});
+
+        const product = dataObj[queryID];
+        const output = replaceTemplate(tempProduct, product);
+        res.end(output);
+        // res.end('This is the PRODUCT');
+
     }
 
     // API
