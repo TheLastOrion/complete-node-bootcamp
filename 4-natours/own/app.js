@@ -1,51 +1,40 @@
-const fs = require('fs');
 const express = require('express');
-
+const morgan = require('morgan')
+const tourRouter = require('./routes/tourRoutes')
+const userRouter = require('./routes/userRoutes')
 const app = express();
 
 app.use(express.json());
-// app.get('/', (req, res)=>
-// {
-//     res.status(200).json({message: 'Hello from the server side!',
-//     app: 'Natours'});
-// });
-//
-// app.post('/', (req, res) =>
-// {
-//     res.send('You can post to this endpoint...');
-// })
-const tours = JSON.parse(fs.readFileSync(`${__dirname}/dev-data/data/tours-simple.json`).toString());
 
-app.get('/api/v1/tours', (req, res) =>
+// 1) MIDDLEWARE
+app.use(morgan('dev'));
+
+
+
+
+//app.get('/api/v1/tours',getAllTours )
+//app.post('/api/v1/tours', createTour)
+
+//app.get('/api/v1/tours/:id', getTour)
+//app.patch('/api/v1/tours/:id', updateTour)
+//app.delete('/api/v1/tours/:id', deleteTour)
+
+// 3) ROUTES
+app.use('/api/v1/tours', tourRouter)
+app.use('/api/v1/users', userRouter)
+
+app.use((req, res, next) =>
 {
-    res.status(200).json({
-        status: 'success',
-        results: tours.length,
-        data: {
-            tours // In ES6 we don't need to provide key value pairs if they have both the same name? tours: tours
-        }
-
-    })
+    console.log('Hello from the middleware! 👋🏻')
+    next();
+})
+app.use((req, res, next)=>
+{
+    req.requestTime = new Date().toISOString();
+    next();
 })
 
-app.post('/api/v1/tours', (req, res) =>{
-    const newId = tours[tours.length - 1].id +1;
-    const newTour = Object.assign({id: newId}, req.body);
+module.exports = app;
 
-    tours.push(newTour);
-    fs.writeFile(`${__dirname}/dev-data/data/tours-simple.json`, JSON.stringify(tours), err =>{
-        res.status(201).json({
-            status: 'success',
-            data: {
-                tour: newTour
-            }
-        })
-    })
 
-    console.log(req.body);
-})
-const port = 3000;
-app.listen(port, ()=> {
-    console.log(`App running on port ${port}...`);
-});
 
