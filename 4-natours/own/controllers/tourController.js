@@ -27,7 +27,32 @@ const Tour = require('../models/tourModel');
 // };
 exports.getAllTours = async (req, res) => {
   try {
-    const tours = await Tour.find();
+    //console.log(req.query);
+    //const tours = await Tour.find();
+    // const tours = await Tour.find({
+    //   duration: 5,
+    //   difficulty: 'easy',
+    // });
+
+    // Filter
+    // Make a copy of the object, in Javascript assign operator is basically a reference so we would be modifying the req object which we don't want
+    // BUILD QUERY
+    const queryObj = { ...req.query };
+    const excludedFields = ['page', 'sort', 'limit', 'fields'];
+    excludedFields.forEach((el) => delete queryObj[el]);
+
+    console.log(req.query, queryObj);
+    const query = Tour.find(queryObj); // It's not await async because we want to chain queries
+    // const query = await Tour.find()
+    //   .where('duration')
+    //   .equals(5)
+    //   .where('difficulty')
+    //   .equals('easy');
+
+    // EXECUTE QUERY
+    const tours = await query;
+
+    // SEND RESPONSE
     res.status(200).json({
       status: 'success',
       requestedAt: req.requestTime,
@@ -74,7 +99,7 @@ exports.createTour = async (req, res) => {
   } catch (err) {
     res.status(400).json({
       status: 'fail',
-      message: 'Invalid data sent!',
+      message: err,
     });
   }
 };
