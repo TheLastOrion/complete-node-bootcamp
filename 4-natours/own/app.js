@@ -13,6 +13,16 @@ if (process.env.NODE_ENV === 'development') {
 }
 app.use(express.json());
 app.use(express.static(`${__dirname}/public`));
+app.use((req, res, next) => {
+  console.log('Hello from the middleware! 👋🏻');
+  next();
+});
+
+app.use((req, res, next) => {
+  req.requestTime = new Date().toISOString();
+  // console.log(req.headers);
+  next();
+});
 
 // 3) ROUTES
 app.use('/api/v1/tours', tourRouter);
@@ -25,14 +35,5 @@ app.all('*', (req, res, next) => {
 
 app.use(globalErrorHandler);
 //This is commented out in Section 9 but I'd rather keep it as it reminds me we have middleware options
-app.use((req, res, next) => {
-  console.log('Hello from the middleware! 👋🏻');
-  next();
-});
-
-app.use((req, res, next) => {
-  req.requestTime = new Date().toISOString();
-  next();
-});
 
 module.exports = app;
