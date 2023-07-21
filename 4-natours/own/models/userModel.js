@@ -41,6 +41,11 @@ const userSchema = new mongoose.Schema({
   passwordChangedAt: Date,
   passwordResetToken: String,
   passwordResetExpires: String,
+  active: {
+    type: Boolean,
+    default: true,
+    select: false
+  },
 });
 
 userSchema.pre('save', async function (next) {
@@ -52,17 +57,27 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
-userSchema.pre('save', function(next) {
+userSchema.pre('save', function (next) {
   if (!this.isModified('password') || this.isNew) return next();
-
-  this.passwordChangetAt = Date.now();
+  this.passwordChangetAt = Date.now() - 1000; //Small hack to prevent passwords sometimes being created in the near future
+  next();
+});
+userSchema.pre(/^find/, function (next) {
+  // the reason why we put $ne: false (not equal to false) rather than
+  // true is because we did not have 'active' field prior to implementing this function,
+  // so in the database, there are entries without active property.
+  this.find({ active: { $ne: false } });
+  next();
 });
 //Instance method! Works on all the User documents
-userSchema.methods.correctPassword = async function(candidatePassword, userPassword) {
+userSchema.methods.correctPassword = async function (
+  candidatePassword,
+  userPassword
+) {
   return await bcrypt.compare(candidatePassword, userPassword);
 };
 //Another Instance method.
-userSchema.methods.changedPasswordAfter = function(JWTTimestamp) {
+userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
   if (this.passwordChangedAt) {
     const changedTimeStamp = parseInt(
       this.passwordChangedAt.getTime() / 1000,
@@ -73,14 +88,14 @@ userSchema.methods.changedPasswordAfter = function(JWTTimestamp) {
   }
   return false;
 };
-userSchema.methods.createPasswordResetToken = function() {
+userSchema.methods.createPasswordResetToken = function () {
   const resetToken = crypto.randomBytes(32).toString('hex');
   this.passwordResetToken = crypto
     .createHash('sha256')
     .update(resetToken)
     .digest('hex');
   console.log({ resetToken }, this.passwordResetToken);
-  this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
+  this.passwordResetExpires = Date.now() + 10 * 60 * 1000; // 10 minutes expiration time
   console.log(new Date(this.passwordResetExpires));
   console.log(new Date(Date.now()));
   return resetToken;
