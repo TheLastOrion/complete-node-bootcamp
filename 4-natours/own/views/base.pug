@@ -18,9 +18,13 @@ html
 		// FOOTER
 		include _footer
 
-		block append head
-			link(rel='stylesheet' href='https://unpkg.com/leaflet@1.6.0/dist/leaflet.css')
-			script(src='https://unpkg.com/leaflet@1.6.0/dist/leaflet.js')
-			script(src='/js/leaflet.js' defer)
+		script(type='module' src='/js/bundled/index.js')
+
+		//script(src='https://cdnjs.cloudflare.com/ajax/libs/axios/1.4.0/axios.min.js' )
+		//script(src='/js/login.js')
+		//block append head
+		//	link(rel='stylesheet' href='https://unpkg.com/leaflet@1.6.0/dist/leaflet.css')
+		//	script(src='https://unpkg.com/leaflet@1.6.0/dist/leaflet.js')
+		//	script(src='/js/leaflet.js' defer)
 		//- script(src='/js/mapbox.js')
 
